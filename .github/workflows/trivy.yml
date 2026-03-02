@@ -20,7 +20,7 @@ name: "Trivy Security Scan"
 
 on:
   push:
-    branches: [main, feature/IN-181-enable-trivy-scanner]
+    branches: [main]
   schedule:
     # Once a day
     - cron: "0 0 * * *"
