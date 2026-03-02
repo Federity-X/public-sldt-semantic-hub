@@ -26,6 +26,9 @@ RUN mvn package -DskipTests
 
 FROM eclipse-temurin:17-jre-alpine
 
+# Update Alpine packages to get security patches
+RUN apk upgrade --no-cache
+
 RUN addgroup -g 101 -S spring \
     && adduser -u 100 -S spring -G spring \
     && mkdir -p /service \
