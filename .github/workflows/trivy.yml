@@ -90,14 +90,14 @@ jobs:
         uses: aquasecurity/trivy-action@0.32.0
         with:
           image-ref: "${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/sldt-semantic-hub:${{ github.sha }}"
-          format: "table"
-          #output: "trivy-results-semantic-hub.sarif"
+          format: "sarif"
+          output: "trivy-results-semantic-hub.sarif"
           severity: "CRITICAL,HIGH" # While vulnerabilities of all severities are reported in the SARIF output, the exit code and workflow failure are triggered only by these specified severities (CRITICAL or HIGH).
           # ignore-unfixed: true
           hide-progress: false
-          exit-code: "0" # Trivy exits with code 1 if vulnerabilities are found, causing the workflow step to fail.
+          exit-code: "1" # Trivy exits with code 1 if vulnerabilities are found, causing the workflow step to fail.
           vuln-type: "os,library"
-          #limit-severities-for-sarif: true
+          limit-severities-for-sarif: true
           version: "v0.69.2"
 
       - name: Upload Trivy scan results to GitHub Security tab
