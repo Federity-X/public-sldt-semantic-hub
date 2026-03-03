@@ -1,6 +1,6 @@
 /********************************************************************************
  * Copyright (c) 2021-2022 Robert Bosch Manufacturing Solutions GmbH
- * Copyright (c) 2021-2022 Contributors to the Eclipse Foundation
+ * Copyright (c) 2021-2026 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Profile("local")
@@ -31,9 +32,10 @@ public class LocalOauthSecurityConfig {
     @Bean
     protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
         http
-                .authorizeRequests(auth -> auth
+                .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll())
-                .csrf().disable();
+                // CSRF protection is disabled because this is a stateless REST API (local dev profile).
+                .csrf(AbstractHttpConfigurer::disable);
         return http.build();
     }
 }
