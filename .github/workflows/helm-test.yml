@@ -73,6 +73,17 @@ jobs:
       - name: Run chart-testing (lint)
         run: ct lint --validate-maintainers=false --target-branch ${{ github.event.repository.default_branch }} --config charts/chart-testing-config.yaml
 
+      - name: Build and load hub image into Kind
+        if: github.event_name != 'pull_request' || steps.list-changed.outputs.changed == 'true'
+        run: |
+          APP_VERSION=$(grep 'appVersion:' charts/semantic-hub/Chart.yaml | awk '{print $2}')
+          IMAGE_REGISTRY=$(grep 'registry:' charts/semantic-hub/values.yaml | head -1 | awk '{print $2}')
+          IMAGE_REPO=$(grep 'repository:' charts/semantic-hub/values.yaml | head -1 | awk '{print $2}')
+          IMAGE_REF="${IMAGE_REGISTRY}/${IMAGE_REPO}:${APP_VERSION}"
+          echo "Building image: ${IMAGE_REF}"
+          docker build -t "${IMAGE_REF}" -f backend/Dockerfile .
+          kind load docker-image "${IMAGE_REF}" --name kind
+
       - name: Run chart-testing (install)
         run: ct install --charts charts/semantic-hub --config charts/chart-testing-config.yaml
         if: github.event_name != 'pull_request' || steps.list-changed.outputs.changed == 'true'

@@ -1,5 +1,6 @@
 /********************************************************************************
  * Copyright (c) 2025 Contributors to the Eclipse Foundation
+ * Copyright (c) 2026 Technovative Solutions
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -130,7 +131,13 @@ public class AspectModelService implements ModelsApiDelegate {
 
    @Override
    public ResponseEntity<Void> deleteModel( final String modelId ) {
-      persistenceLayer.deleteModelsPackage( ModelPackageUrn.fromUrn( modelId ) );
+      ModelPackageUrn packageUrn;
+      try {
+         packageUrn = ModelPackageUrn.fromUrn( AspectModelUrn.fromUrn( modelId ) );
+      } catch ( Exception e ) {
+         packageUrn = ModelPackageUrn.fromUrn( modelId );
+      }
+      persistenceLayer.deleteModelsPackage( packageUrn );
       return new ResponseEntity<>( HttpStatus.NO_CONTENT );
    }
 

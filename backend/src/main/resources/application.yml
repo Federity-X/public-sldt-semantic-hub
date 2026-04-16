@@ -1,6 +1,7 @@
 ###############################################################
 # Copyright (c) 2021-2022 T-Systems International GmbH
 # Copyright (c) 2021-2022 Contributors to the Eclipse Foundation
+# Copyright (c) 2026 Technovative Solutions
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -20,7 +21,13 @@
 
 server:
   port: 4242
+  servlet:
+    context-path: /hub
   forward-headers-strategy: framework
+
+openapi:
+  semanticHub:
+    base-path: /api/v1
 
 hub:
   triple-store:

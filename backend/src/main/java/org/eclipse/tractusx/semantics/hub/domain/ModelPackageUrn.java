@@ -1,6 +1,7 @@
 /********************************************************************************
  * Copyright (c) 2021-2022 Robert Bosch Manufacturing Solutions GmbH
  * Copyright (c) 2021-2022 Contributors to the Eclipse Foundation
+ * Copyright (c) 2026 Technovative Solutions
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -38,5 +39,10 @@ public class ModelPackageUrn {
 
    public static ModelPackageUrn fromUrn( String urn ) {
       return new ModelPackageUrn( urn );
+   }
+
+   @Override
+   public String toString() {
+      return urn;
    }
 }
