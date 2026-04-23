@@ -24,7 +24,18 @@ kind: Ingress
 metadata:
   name: {{ include "hub.fullname" . }}
   annotations:
-{{ .Values.hub.ingress.annotations | toYaml | indent 4 }}
+    {{- if .Values.hub.ingress.preserveRawRequestUri }}
+    # Preserve URL-encoded reserved characters (e.g. '%23' for '#') in the
+    # request path when nginx-ingress proxies to the upstream. Without this,
+    # nginx normalizes the URI and decodes '%23' to '#', which drops the URN
+    # aspect-name fragment (e.g. '...:5.0.0#BatteryPass') and causes a 404 on
+    # GET /models/{urn} calls. Using $request_uri forwards the raw request line.
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      rewrite ^ $request_uri break;
+    {{- end }}
+    {{- with .Values.hub.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   labels:
     {{- include "hub.labels" . | nindent 4 }}
 spec:
