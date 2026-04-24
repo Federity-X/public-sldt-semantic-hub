@@ -68,6 +68,11 @@ hub:
     urlPrefix: /semantics/hub
     className: ""
     annotations: []
+    ## Preserve URL-encoded reserved characters in the request path (e.g. '%23'
+    ## for '#') when proxied upstream. Required for GET /models/{urn} calls
+    ## where the URN contains an aspect-name fragment (e.g. '#BatteryPass').
+    ## Only takes effect with the nginx ingress controller.
+    preserveRawRequestUri: true
   resources:
     limits:
       cpu: 750m
