@@ -127,6 +127,19 @@ public class TripleStorePersistence implements PersistenceLayer {
    }
 
    @Override
+   public SemanticModel updateOpenApiUrl( String urn, String openApiUrl ) {
+      AspectModelUrn aspectModelUrn = AspectModelUrn.fromUrn( urn );
+      Optional.ofNullable( findByUrn( aspectModelUrn ) )
+            .orElseThrow( () -> new AspectModelNotFoundException( aspectModelUrn ) );
+      ModelPackageUrn packageUrn = ModelPackageUrn.fromUrn( aspectModelUrn );
+      final UpdateRequest updateRequest = SparqlQueries.buildUpdateOpenApiUrlRequest( packageUrn, openApiUrl );
+      try ( final RDFConnection rdfConnection = rdfConnectionRemoteBuilder.build() ) {
+         rdfConnection.update( updateRequest );
+      }
+      return findByUrn( aspectModelUrn );
+   }
+
+   @Override
    public SemanticModel save( SemanticModelType type, String newModel, SemanticModelStatus status ) {
       validateStatusParameter( status );
       final Model rdfModel = sdsSdk.load( newModel.getBytes( StandardCharsets.UTF_8 ) );
@@ -371,6 +384,10 @@ public class TripleStorePersistence implements PersistenceLayer {
       model.setVersion( aspectModelUrn.getVersion() );
       model.setName( aspectModelUrn.getName() );
       model.setStatus( SemanticModelStatus.fromValue( status ) );
+      org.apache.jena.rdf.model.RDFNode openApiUrlNode = querySolution.get( SparqlQueries.OPEN_API_URL_RESULT );
+      if ( openApiUrlNode != null ) {
+         model.setOpenApiUrl( openApiUrlNode.asLiteral().getString() );
+      }
       return model;
    }
 

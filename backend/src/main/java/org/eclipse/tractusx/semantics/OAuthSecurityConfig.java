@@ -61,6 +61,7 @@ public class OAuthSecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/**/models/**").access(expressionManager("@authorizationEvaluator.hasRoleViewSemanticModel()"))
                 .requestMatchers(HttpMethod.POST, "/**/models/**").access(expressionManager("@authorizationEvaluator.hasRoleAddSemanticModel()"))
                 .requestMatchers(HttpMethod.PUT, "/**/models/**").access(expressionManager("@authorizationEvaluator.hasRoleUpdateSemanticModel()"))
+                .requestMatchers(HttpMethod.PATCH, "/**/models/**").access(expressionManager("@authorizationEvaluator.hasRoleUpdateSemanticModel()"))
                 .requestMatchers(HttpMethod.DELETE, "/**/models/**").access(expressionManager("@authorizationEvaluator.hasRoleDeleteSemanticModel()")))
             // CSRF protection is disabled because this is a stateless REST API using OAuth2 JWT bearer tokens.
             // CSRF attacks exploit cookie-based authentication; since no session cookies are used, CSRF is not applicable.

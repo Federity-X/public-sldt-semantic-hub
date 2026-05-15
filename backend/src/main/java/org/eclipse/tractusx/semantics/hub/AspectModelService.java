@@ -30,6 +30,7 @@ import org.eclipse.tractusx.semantics.hub.api.ModelsApiDelegate;
 import org.eclipse.tractusx.semantics.hub.domain.ModelPackageStatus;
 import org.eclipse.tractusx.semantics.hub.domain.ModelPackageUrn;
 import org.eclipse.tractusx.semantics.hub.model.AasFormat;
+import org.eclipse.tractusx.semantics.hub.model.OpenApiUrlPatch;
 import org.eclipse.tractusx.semantics.hub.model.SemanticModel;
 import org.eclipse.tractusx.semantics.hub.model.SemanticModelList;
 import org.eclipse.tractusx.semantics.hub.model.SemanticModelStatus;
@@ -157,8 +158,29 @@ public class AspectModelService implements ModelsApiDelegate {
 
    @Override
    public ResponseEntity<Void> getModelOpenApi( final String modelId, final String baseUrl ) {
-      final String openApiJson = sdkHelper.getOpenApiDefinitionJson( modelId, baseUrl );
+      String effectiveBaseUrl = baseUrl;
+      if ( effectiveBaseUrl == null || effectiveBaseUrl.isBlank() ) {
+         SemanticModel model = persistenceLayer.getModel( AspectModelUrn.fromUrn( modelId ) );
+         if ( model != null && model.getOpenApiUrl() != null && !model.getOpenApiUrl().isBlank() ) {
+            effectiveBaseUrl = model.getOpenApiUrl();
+         } else {
+            throw new IllegalArgumentException(
+                  "No baseUrl provided and no openApiUrl stored for model " + modelId );
+         }
+      }
+      final String openApiJson = sdkHelper.getOpenApiDefinitionJson( modelId, effectiveBaseUrl );
       return new ResponseEntity( openApiJson, HttpStatus.OK );
+   }
+
+   @Override
+   public ResponseEntity<SemanticModel> updateModelOpenApiUrl( String urn, OpenApiUrlPatch body ) {
+      try {
+         new java.net.URL( body.getUrl() ).toURI();
+      } catch ( Exception e ) {
+         throw new IllegalArgumentException( "Invalid URL: " + body.getUrl() );
+      }
+      SemanticModel semanticModel = persistenceLayer.updateOpenApiUrl( urn, body.getUrl() );
+      return new ResponseEntity<>( semanticModel, HttpStatus.OK );
    }
 
    @Override

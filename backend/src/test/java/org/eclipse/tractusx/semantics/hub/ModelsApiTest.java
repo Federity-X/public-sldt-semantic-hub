@@ -989,6 +989,59 @@ public class ModelsApiTest extends AbstractModelsApiTest{
    }
 
    @Test
+   public void testPatchOpenApiUrlExpectSuccess() throws Exception {
+      String urnPrefix = "urn:samm:org.eclipse.tractusx.testopenapi:1.0.0#";
+      mvc.perform( post( TestUtils.createValidModelRequest( urnPrefix ), "DRAFT" ) )
+            .andDo( MockMvcResultHandlers.print() )
+            .andExpect( status().isOk() );
+
+      String urn = toMovementUrn( urnPrefix );
+      mvc.perform( patchOpenApiUrl( urn, "{\"url\":\"https://example.com/api\"}" ) )
+            .andDo( MockMvcResultHandlers.print() )
+            .andExpect( status().isOk() )
+            .andExpect( jsonPath( "$.openApiUrl", is( "https://example.com/api" ) ) );
+   }
+
+   @Test
+   public void testPatchOpenApiUrlNotFoundExpect404() throws Exception {
+      mvc.perform( patchOpenApiUrl( "urn:samm:org.eclipse.tractusx.unknown:9.9.9#Missing",
+            "{\"url\":\"https://example.com/api\"}" ) )
+            .andDo( MockMvcResultHandlers.print() )
+            .andExpect( status().isNotFound() );
+   }
+
+   @Test
+   public void testPatchOpenApiUrlInvalidUrlExpect400() throws Exception {
+      String urnPrefix = "urn:samm:org.eclipse.tractusx.testopenapi2:1.0.0#";
+      mvc.perform( post( TestUtils.createValidModelRequest( urnPrefix ), "DRAFT" ) )
+            .andDo( MockMvcResultHandlers.print() )
+            .andExpect( status().isOk() );
+
+      String urn = toMovementUrn( urnPrefix );
+      mvc.perform( patchOpenApiUrl( urn, "{\"url\":\"not-a-valid-url\"}" ) )
+            .andDo( MockMvcResultHandlers.print() )
+            .andExpect( status().isBadRequest() );
+   }
+
+   @Test
+   public void testGetModelOpenApiWithStoredUrlExpectSuccess() throws Exception {
+      String urnPrefix = "urn:samm:org.eclipse.tractusx.testopenapi3:1.0.0#";
+      mvc.perform( post( TestUtils.createValidModelRequest( urnPrefix ), "DRAFT" ) )
+            .andDo( MockMvcResultHandlers.print() )
+            .andExpect( status().isOk() );
+
+      String urn = toMovementUrn( urnPrefix );
+      mvc.perform( patchOpenApiUrl( urn, "{\"url\":\"https://example.com/api\"}" ) )
+            .andExpect( status().isOk() );
+
+      // GET /openapi without baseUrl should use stored URL
+      mvc.perform( MockMvcRequestBuilders.get( "/api/v1/models/{urn}/openapi", urn )
+                  .with( jwtTokenFactory.allRoles() ) )
+            .andDo( MockMvcResultHandlers.print() )
+            .andExpect( status().isOk() );
+   }
+
+   @Test
    public void testGetModelByURNWithInvalidURN() throws Exception {
       String urnPrefix = "urn:invalid";
       mvc.perform( MockMvcRequestBuilders.get( "/api/v1/models/{urn}", urnPrefix ).with( jwtTokenFactory.allRoles() ) )
