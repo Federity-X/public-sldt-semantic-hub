@@ -108,4 +108,12 @@ public abstract class AbstractModelsApiTest extends FusekiTestContainer {
               .with(jwtTokenFactory.allRoles());
     }
 
+    public MockHttpServletRequestBuilder patchOpenApiUrl( String urn, String jsonBody ) {
+        return MockMvcRequestBuilders.patch( "/api/v1/models/{urn}/openApiUrl", urn )
+                .accept( MediaType.APPLICATION_JSON )
+                .contentType( MediaType.APPLICATION_JSON )
+                .content( jsonBody )
+                .with(jwtTokenFactory.allRoles());
+    }
+
 }

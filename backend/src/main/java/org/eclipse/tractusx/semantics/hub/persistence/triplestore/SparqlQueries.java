@@ -66,6 +66,9 @@ public class SparqlQueries {
    public static final String SAMM_DESCRIPTION = "urn:samm:org.eclipse.esmf.samm:meta-model:1.0.0#description";
 
    public static final Property STATUS_PROPERTY = ResourceFactory.createProperty( AUXILIARY_NAMESPACE, "status" );
+   public static final Property OPEN_API_URL_PROPERTY = ResourceFactory.createProperty( AUXILIARY_NAMESPACE, "openApiUrl" );
+
+   public static final String OPEN_API_URL_RESULT = "openApiUrlResult";
 
    private static final String DELETE_BY_URN_QUERY =
          "DELETE { ?s ?p ?o . } \n"
@@ -100,7 +103,7 @@ public class SparqlQueries {
                + "}";
 
    private static final String FIND_BY_URN_QUERY =
-         "SELECT  ?aspect (?status as ?statusResult)\n"
+         "SELECT  ?aspect (?status as ?statusResult) (?openApiUrl as ?openApiUrlResult)\n"
                + "WHERE\n"
                + "  {\n"
                + "      bind( $urnParam as ?urn ) \n"
@@ -108,12 +111,13 @@ public class SparqlQueries {
                + "      bind( $bammAspectUrnParam as ?bammAspectUrn )\n"
                + "      ?aspect a ?bammAspect .\n"
                + "      ?s aux:status ?status .\n"
+               + "      OPTIONAL { ?s aux:openApiUrl ?openApiUrl . }\n"
                + "      FILTER ( regex(str(?bammAspect), ?bammAspectUrn, \"\") && ( str(?aspect) = ?urn )\n"
                + "            && (str(?s) = ?packageUrn) )\n"
                + "  }";
 
    private static final String FIND_BY_MULTIPLE_URNS_QUERY =
-         "SELECT DISTINCT ?aspect (?status as ?statusResult)\n"
+         "SELECT DISTINCT ?aspect (?status as ?statusResult) (?openApiUrl as ?openApiUrlResult)\n"
                + "WHERE\n"
                + "  {\n"
                + "      VALUES (?urns) { ?urnParamList } \n"
@@ -121,6 +125,7 @@ public class SparqlQueries {
                + "      bind( $bammAspectUrnParam as ?bammAspectUrn )\n"
                + "      ?aspect a ?bammAspect .\n"
                + "      ?s aux:status ?status .\n"
+               + "      OPTIONAL { ?s aux:openApiUrl ?openApiUrl . }\n"
                + "      FILTER ( regex(str(?bammAspect), ?bammAspectUrn, \"\") \n"
                + "      && ( str(?aspect) IN (?urns) )  \n"
                + "      && ( str(?s) IN (?packageUrns)) ) \n"
@@ -149,6 +154,7 @@ public class SparqlQueries {
            + "FILTER regex(str(?bammAspect), ?bammAspectUrnRegex, \"\")\n"
            + "BIND(iri(concat(strbefore(str(?aspect ), \"#\"), \"#\")) AS ?package)\n"
            + "?package  aux:status  ?status\n"
+           + "OPTIONAL { ?package aux:openApiUrl ?openApiUrl . }\n"
            + "FILTER ( !bound(?statusFilter) || contains(str(?status), ?statusFilter) )\n"
            + "FILTER ( !bound(?namespaceFilter) || contains(lcase(str(?aspect)), lcase(?namespaceFilter) ) )\n"
            + "}\n";
@@ -164,13 +170,14 @@ public class SparqlQueries {
            + "FILTER regex(str(?bammAspect), ?bammAspectUrnRegex, \"\")\n"
            + "BIND(iri(concat(strbefore(str(?aspect ), \"#\"), \"#\")) AS ?package)\n"
            + "?package  aux:status  ?status\n"
+           + "OPTIONAL { ?package aux:openApiUrl ?openApiUrl . }\n"
            + "FILTER ( !bound(?statusFilter) || contains(str(?status), ?statusFilter) )\n"
            + "FILTER ( !bound(?namespaceFilter) || contains(lcase(str(?aspect)), lcase(?namespaceFilter) ) )\n"
            + "FILTER ( str(?aspect) IN (?urns) ) "
            + "}\n";
 
    private static final String FIND_ALL_MINIMAL_QUERY =
-           "SELECT DISTINCT ?aspect (?status as ?statusResult)\n"
+           "SELECT DISTINCT ?aspect (?status as ?statusResult) (?openApiUrl as ?openApiUrlResult)\n"
                    + FILTER_QUERY_MINIMAL_WHERE_CLAUSE
                    + "ORDER BY lcase(str(?aspect))\n"
                    + "OFFSET  $offsetParam\n"
@@ -247,6 +254,22 @@ public class SparqlQueries {
    public static UpdateRequest buildDeleteByUrnRequest( final ModelPackageUrn modelsPackage ) {
       final ParameterizedSparqlString pss = create( DELETE_BY_URN_QUERY );
       pss.setLiteral( "$urnParam", modelsPackage.getUrn() );
+      return pss.asUpdate();
+   }
+
+   private static final String UPDATE_OPEN_API_URL_QUERY =
+         "DELETE { ?pkg aux:openApiUrl ?old . }\n"
+               + "INSERT { ?pkg aux:openApiUrl $newUrlParam . }\n"
+               + "WHERE {\n"
+               + "   ?pkg aux:status ?anyStatus .\n"
+               + "   FILTER (str(?pkg) = $packageUrnParam)\n"
+               + "   OPTIONAL { ?pkg aux:openApiUrl ?old . }\n"
+               + "}";
+
+   public static UpdateRequest buildUpdateOpenApiUrlRequest( final ModelPackageUrn packageUrn, final String openApiUrl ) {
+      final ParameterizedSparqlString pss = create( UPDATE_OPEN_API_URL_QUERY );
+      pss.setLiteral( "$packageUrnParam", packageUrn.getUrn() );
+      pss.setLiteral( "$newUrlParam", openApiUrl );
       return pss.asUpdate();
    }
 
